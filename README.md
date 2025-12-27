@@ -2,6 +2,10 @@
 
 Secure middleware service for PII-sensitive chat applications. Built as a coding challenge demonstrating production-grade patterns.
 
+## Demo
+
+![Demo](assets/demo.gif)
+
 ## Features
 
 - **PII Sanitization**: Regex-based detection of emails, credit cards, SSNs
