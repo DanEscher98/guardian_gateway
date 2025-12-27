@@ -55,3 +55,13 @@ drizzle/migrations/
 .vscode
 *.swp
 *.swo
+
+# Octopus worktrees
+.worktrees/
+
+# Audit data
+data/*.json
+!data/.gitkeep
+
+# Octopus tentacle worktrees
+.worktrees/
