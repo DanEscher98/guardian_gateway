@@ -72,27 +72,24 @@ describe('Sanitizer Service', () => {
   describe('Credit Card Redaction', () => {
     it('should redact credit card numbers', () => {
       fc.assert(
-        fc.property(
-          fc.integer({ min: 1, max: 3 }),
-          (count) => {
-            const cards: string[] = []
-            for (let i = 0; i < count; i++) {
-              // Generate valid-looking 16-digit card numbers
-              cards.push(faker.finance.creditCardNumber('################'))
-            }
-
-            const message = `Payment cards: ${cards.join(', ')}`
-            const result = sanitize(message)
-
-            // No card numbers should remain
-            for (const card of cards) {
-              expect(result.redactedMessage).not.toContain(card)
-            }
-
-            // Should have CREDIT_CARD redaction
-            expect(result.redactedMessage).toContain('<REDACTED: CREDIT_CARD>')
+        fc.property(fc.integer({ min: 1, max: 3 }), (count) => {
+          const cards: string[] = []
+          for (let i = 0; i < count; i++) {
+            // Generate valid-looking 16-digit card numbers
+            cards.push(faker.finance.creditCardNumber('################'))
           }
-        ),
+
+          const message = `Payment cards: ${cards.join(', ')}`
+          const result = sanitize(message)
+
+          // No card numbers should remain
+          for (const card of cards) {
+            expect(result.redactedMessage).not.toContain(card)
+          }
+
+          // Should have CREDIT_CARD redaction
+          expect(result.redactedMessage).toContain('<REDACTED: CREDIT_CARD>')
+        }),
         { numRuns: 30 }
       )
     })
@@ -140,12 +137,7 @@ describe('Sanitizer Service', () => {
     })
 
     it('should handle SSN edge cases', () => {
-      const testSSNs = [
-        '123-45-6789',
-        '000-00-0000',
-        '999-99-9999',
-        '123456789',
-      ]
+      const testSSNs = ['123-45-6789', '000-00-0000', '999-99-9999', '123456789']
 
       for (const ssn of testSSNs) {
         const result = sanitize(`SSN: ${ssn}`)
@@ -207,11 +199,13 @@ describe('Sanitizer Service', () => {
           fc.record({
             emails: fc.array(realisticEmail, { minLength: 0, maxLength: 3 }),
             ssns: fc.array(
-              fc.tuple(
-                fc.integer({ min: 100, max: 999 }),
-                fc.integer({ min: 10, max: 99 }),
-                fc.integer({ min: 1000, max: 9999 })
-              ).map(([a, b, c]) => `${a}-${b}-${c}`),
+              fc
+                .tuple(
+                  fc.integer({ min: 100, max: 999 }),
+                  fc.integer({ min: 10, max: 99 }),
+                  fc.integer({ min: 1000, max: 9999 })
+                )
+                .map(([a, b, c]) => `${a}-${b}-${c}`),
               { minLength: 0, maxLength: 2 }
             ),
           }),
@@ -302,7 +296,9 @@ describe('Sanitizer Service', () => {
       const result = sanitize(longMessage)
 
       expect(result.redactedMessage).not.toContain(email)
-      expect(result.redactedMessage.length).toBe(longMessage.length - email.length + '<REDACTED: EMAIL>'.length)
+      expect(result.redactedMessage.length).toBe(
+        longMessage.length - email.length + '<REDACTED: EMAIL>'.length
+      )
     })
   })
 })

@@ -142,7 +142,10 @@ export async function callMockAi(message: string): AsyncResult<MockAIResponse> {
     recordFailure()
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown AI service error'
-    logger.error('Mock AI request failed', { error: errorMessage, circuitState: circuitState.state })
+    logger.error('Mock AI request failed', {
+      error: errorMessage,
+      circuitState: circuitState.state,
+    })
 
     return Result.err(
       new AppError({

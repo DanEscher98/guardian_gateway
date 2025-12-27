@@ -30,7 +30,10 @@ export interface SecureInquiryRequest {
 
 export const secureInquiryRequestSchema = z.object({
   userId: z.string().min(1, 'userId is required'),
-  message: z.string().min(1, 'message is required').max(10000, 'message must not exceed 10000 characters'),
+  message: z
+    .string()
+    .min(1, 'message is required')
+    .max(10000, 'message must not exceed 10000 characters'),
 })
 
 /**

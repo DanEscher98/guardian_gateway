@@ -56,8 +56,8 @@ export type CircuitBreakerState = 'closed' | 'open' | 'half-open'
 export interface CircuitBreakerStatus {
   state: CircuitBreakerState
   failures: number
-  lastFailure: string | null  // ISO 8601
-  lastSuccess: string | null  // ISO 8601
+  lastFailure: string | null // ISO 8601
+  lastSuccess: string | null // ISO 8601
 }
 
 /** Mock AI response */
@@ -72,8 +72,8 @@ export interface MockAIResponse {
 
 /** Single audit log entry */
 export interface AuditEntry {
-  id: string              // UUID
-  timestamp: string       // ISO 8601
+  id: string // UUID
+  timestamp: string // ISO 8601
   userId: string
   originalMessage: string // Encrypted (EncryptedPayload as JSON string)
   redactedMessage: string // Plaintext

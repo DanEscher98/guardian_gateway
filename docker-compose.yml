@@ -6,11 +6,11 @@ services:
       POSTGRES_PASSWORD: guardian_dev
       POSTGRES_DB: guardian
     ports:
-      - "5433:5432"
+      - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U guardian"]
+      test: ['CMD-SHELL', 'pg_isready -U guardian']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -20,18 +20,18 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8081:8080"
+      - '8081:8080'
     environment:
       APP_ENV: development
       DATABASE_URL: postgres://guardian:guardian_dev@db:5432/guardian
-      PORT: "8080"
+      PORT: '8080'
       AUDIT_MASTER_KEY: ${AUDIT_MASTER_KEY:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
       AUDIT_KEY_VERSION: ${AUDIT_KEY_VERSION:-1}
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/health || exit 1"]
+      test: ['CMD-SHELL', 'wget -q --spider http://localhost:8080/health || exit 1']
       interval: 10s
       timeout: 5s
       retries: 3

@@ -2,9 +2,9 @@
 
 ## Active Tentacles
 
-| ID | Description | Scope | Status | Worktree |
-|----|-------------|-------|--------|----------|
-| (none) | All tentacles completed | - | - | - |
+| ID     | Description             | Scope | Status | Worktree |
+| ------ | ----------------------- | ----- | ------ | -------- |
+| (none) | All tentacles completed | -     | -      | -        |
 
 ## Dependency Graph
 
@@ -15,17 +15,18 @@ t1-core (no deps) ──┬──► t2-services (needs types from t1)
 ```
 
 **Parallel strategy:**
+
 - t1-core and t2-services can start immediately
 - t2-services can begin with service skeleton, import types once t1-core publishes
 - t3-integration can start docker-compose immediately, wait for services for controller
 
 ## Completed Tentacles
 
-| ID | Description | Merged |
-|----|-------------|--------|
-| t1-core | Crypto utilities, models, env config | Yes |
-| t2-services | Sanitizer, MockAI, Audit logging | Yes |
-| t3-integration | Controllers, tests, Docker | Yes |
+| ID             | Description                          | Merged |
+| -------------- | ------------------------------------ | ------ |
+| t1-core        | Crypto utilities, models, env config | Yes    |
+| t2-services    | Sanitizer, MockAI, Audit logging     | Yes    |
+| t3-integration | Controllers, tests, Docker           | Yes    |
 
 ## Merged to Epic Branch
 

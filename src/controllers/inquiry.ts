@@ -1,6 +1,6 @@
 import { Body, Post, Route, SuccessResponse, Tags } from 'tsoa'
 
-import { type AppAsyncResponse,AppController, Errors, Result } from '../lib'
+import { type AppAsyncResponse, AppController, Errors, Result } from '../lib'
 import type { SecureInquiryRequest, SecureInquiryResponse } from '../models/inquiry'
 import { secureInquiryRequestSchema } from '../models/inquiry'
 import { writeAuditEntry } from '../services/auditLog'
