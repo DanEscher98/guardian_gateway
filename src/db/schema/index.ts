@@ -7,4 +7,5 @@
  *   export * from './posts'
  */
 
+export * from './auditEntries'
 export * from './users'

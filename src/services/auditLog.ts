@@ -2,38 +2,20 @@
  * Audit Log Service
  *
  * Provides encrypted audit logging for secure inquiry processing.
- * Stores audit entries with encrypted original messages.
+ * Stores audit entries with encrypted original messages in PostgreSQL.
  */
 
-import { randomUUID } from 'node:crypto'
-import * as fs from 'node:fs/promises'
-import * as path from 'node:path'
+import { desc, eq } from 'drizzle-orm'
 
+import { db } from '../db/client'
+import { auditEntries } from '../db/schema'
 import { type AsyncResult, Errors, Result } from '../lib'
 import type { AuditEntry } from '../models/contracts'
 import { encrypt } from '../utils/crypto'
 import logger from '../utils/logger'
 
-// Storage configuration
-const DATA_DIR = path.join(process.cwd(), 'data')
-const AUDIT_LOG_FILE = path.join(DATA_DIR, 'audit-log.json')
-
 /**
- * Ensure the data directory exists.
- */
-async function ensureDataDirectory(): AsyncResult<void> {
-  try {
-    await fs.mkdir(DATA_DIR, { recursive: true })
-    return Result.ok(undefined)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to create data directory'
-    logger.error('Failed to create data directory', { error: message })
-    return Result.err(Errors.internal(message))
-  }
-}
-
-/**
- * Write an audit entry to the log file.
+ * Write an audit entry to the database.
  *
  * @param entry - Partial audit entry (id and timestamp will be generated)
  * @returns AsyncResult indicating success or failure
@@ -41,38 +23,22 @@ async function ensureDataDirectory(): AsyncResult<void> {
 export async function writeAuditEntry(
   entry: Omit<AuditEntry, 'id' | 'timestamp' | 'keyVersion'>
 ): AsyncResult<void> {
-  // Ensure data directory exists
-  const dirResult = await ensureDataDirectory()
-  if (Result.isErr(dirResult)) {
-    return dirResult
-  }
-
   try {
-    // Generate entry metadata
-    const id = randomUUID()
-    const timestamp = new Date().toISOString()
-
     // Encrypt the original message with per-user key derivation
     const encryptedPayload = encrypt(entry.originalMessage, entry.userId)
     const encryptedMessage = JSON.stringify(encryptedPayload)
 
-    // Create the full audit entry
-    const fullEntry: AuditEntry = {
-      id,
-      timestamp,
+    // Insert into database
+    await db.insert(auditEntries).values({
       userId: entry.userId,
       originalMessage: encryptedMessage,
       redactedMessage: entry.redactedMessage,
       aiResponse: entry.aiResponse,
       success: entry.success,
       keyVersion: encryptedPayload.keyVersion,
-    }
+    })
 
-    // Append as JSON line to file
-    const line = JSON.stringify(fullEntry) + '\n'
-    await fs.appendFile(AUDIT_LOG_FILE, line, 'utf-8')
-
-    logger.debug('Audit entry written', { id, userId: entry.userId, success: entry.success })
+    logger.debug('Audit entry written', { userId: entry.userId, success: entry.success })
 
     return Result.ok(undefined)
   } catch (error) {
@@ -83,22 +49,73 @@ export async function writeAuditEntry(
 }
 
 /**
- * Read all audit entries from the log file.
- * Note: For production, this should support pagination.
+ * Read audit entries for a specific user.
  *
+ * @param userId - User ID to filter by
+ * @param limit - Maximum number of entries to return (default 100)
  * @returns AsyncResult with array of audit entries
  */
-export async function readAuditEntries(): AsyncResult<AuditEntry[]> {
+export async function readAuditEntriesByUser(
+  userId: string,
+  limit = 100
+): AsyncResult<AuditEntry[]> {
   try {
-    const content = await fs.readFile(AUDIT_LOG_FILE, 'utf-8')
-    const lines = content.trim().split('\n').filter(Boolean)
-    const entries: AuditEntry[] = lines.map((line) => JSON.parse(line))
+    const rows = await db
+      .select()
+      .from(auditEntries)
+      .where(eq(auditEntries.userId, userId))
+      .orderBy(desc(auditEntries.createdAt))
+      .limit(limit)
+
+    // Map DB rows to AuditEntry interface
+    const entries: AuditEntry[] = rows.map((row) => ({
+      id: row.id,
+      timestamp: row.createdAt.toISOString(),
+      userId: row.userId,
+      originalMessage: row.originalMessage,
+      redactedMessage: row.redactedMessage,
+      aiResponse: row.aiResponse,
+      success: row.success,
+      keyVersion: row.keyVersion,
+    }))
+
     return Result.ok(entries)
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      // File doesn't exist yet, return empty array
-      return Result.ok([])
-    }
+    const message = error instanceof Error ? error.message : 'Failed to read audit entries'
+    logger.error('Failed to read audit entries', { error: message })
+    return Result.err(Errors.internal(message))
+  }
+}
+
+/**
+ * Read all audit entries from the database.
+ * Note: For production, prefer readAuditEntriesByUser with pagination.
+ *
+ * @param limit - Maximum number of entries to return (default 1000)
+ * @returns AsyncResult with array of audit entries
+ */
+export async function readAuditEntries(limit = 1000): AsyncResult<AuditEntry[]> {
+  try {
+    const rows = await db
+      .select()
+      .from(auditEntries)
+      .orderBy(desc(auditEntries.createdAt))
+      .limit(limit)
+
+    // Map DB rows to AuditEntry interface
+    const entries: AuditEntry[] = rows.map((row) => ({
+      id: row.id,
+      timestamp: row.createdAt.toISOString(),
+      userId: row.userId,
+      originalMessage: row.originalMessage,
+      redactedMessage: row.redactedMessage,
+      aiResponse: row.aiResponse,
+      success: row.success,
+      keyVersion: row.keyVersion,
+    }))
+
+    return Result.ok(entries)
+  } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to read audit entries'
     logger.error('Failed to read audit entries', { error: message })
     return Result.err(Errors.internal(message))
