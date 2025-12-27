@@ -4,9 +4,8 @@
 
 | ID | Description | Scope | Status | Worktree |
 |----|-------------|-------|--------|----------|
-| t1-core | Crypto utilities, models, env config | src/utils/crypto.ts, src/models/, src/env.ts | pending | .worktrees/t1-core |
-| t2-services | Sanitizer, MockAI, Audit logging | src/services/ | pending | .worktrees/t2-services |
-| t3-integration | Controller, health, docker, tests | src/controllers/, tests/, docker-compose.yml | pending | .worktrees/t3-integration |
+| t2-services | Sanitizer, MockAI, Audit logging | src/services/ | active | .worktrees/t2-services |
+| t3-integration | Controller, health, docker, tests | src/controllers/, tests/, docker-compose.yml | active | .worktrees/t3-integration |
 
 ## Dependency Graph
 
@@ -23,8 +22,10 @@ t1-core (no deps) ──┬──► t2-services (needs types from t1)
 
 ## Completed Tentacles
 
-(none yet)
+| ID | Description | Merged |
+|----|-------------|--------|
+| t1-core | Crypto utilities, models, env config | Yes |
 
 ## Merged to Epic Branch
 
-(none yet)
+- **t1-core** (c5eed94): crypto.ts, inquiry.ts models, env.ts updates
