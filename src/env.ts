@@ -24,6 +24,25 @@ const EnvSchema = z.object({
       }
       return num
     }),
+  // Encryption key for audit log (64-char hex = 32 bytes)
+  // Optional in development (auto-generated), required in production
+  AUDIT_MASTER_KEY: z
+    .string()
+    .length(64, 'AUDIT_MASTER_KEY must be a 64-character hex string')
+    .regex(/^[0-9a-fA-F]+$/, 'AUDIT_MASTER_KEY must be a valid hex string')
+    .optional(),
+  // Key version for encryption (default: 1)
+  AUDIT_KEY_VERSION: z
+    .string()
+    .optional()
+    .default('1')
+    .transform((val) => {
+      const num = parseInt(val, 10)
+      if (isNaN(num) || num < 1) {
+        throw new Error('AUDIT_KEY_VERSION must be a positive integer')
+      }
+      return num
+    }),
 })
 
 const _env = EnvSchema.safeParse(process.env)
@@ -31,6 +50,17 @@ const _env = EnvSchema.safeParse(process.env)
 if (!_env.success) {
   console.error('Invalid environment variables:', _env.error.format())
   process.exit(1)
+}
+
+// Validate production requirements
+if (_env.data.APP_ENV === 'production' && !_env.data.AUDIT_MASTER_KEY) {
+  console.error('AUDIT_MASTER_KEY is required in production')
+  process.exit(1)
+}
+
+// Warn if using auto-generated key in development
+if (_env.data.APP_ENV === 'development' && !_env.data.AUDIT_MASTER_KEY) {
+  console.warn('[SECURITY WARNING] Using auto-generated encryption key in development mode')
 }
 
 export const env = _env.data
