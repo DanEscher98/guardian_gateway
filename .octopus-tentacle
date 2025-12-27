@@ -1,7 +1,0 @@
-tentacle_id: t2-services
-description: "Sanitizer, Mock AI with circuit breaker, Audit logging"
-branch: tentacle/t2-services
-scope: "src/services/sanitizer.ts, src/services/mockAi.ts, src/services/auditLog.ts"
-created: 2025-12-26
-brain_worktree: "/home/danyiel/Working/Freelancing/JobHunting/NovaDynamics/guardian_gateway"
-worktree_path: ".worktrees/t2-services"
