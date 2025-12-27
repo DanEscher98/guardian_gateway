@@ -39,7 +39,7 @@ async function ensureDataDirectory(): AsyncResult<void> {
  * @returns AsyncResult indicating success or failure
  */
 export async function writeAuditEntry(
-  entry: Omit<AuditEntry, 'id' | 'timestamp'>
+  entry: Omit<AuditEntry, 'id' | 'timestamp' | 'keyVersion'>
 ): AsyncResult<void> {
   // Ensure data directory exists
   const dirResult = await ensureDataDirectory()

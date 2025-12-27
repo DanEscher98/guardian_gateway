@@ -1,29 +1,35 @@
 import { Get, Request, Route, Security, SuccessResponse, Tags } from 'tsoa'
 
 import { type AppAsyncResponse, AppController, createSuccessResponse, Errors, Result } from '../lib'
+import type { HealthStatus } from '../models/health'
+import { getCircuitBreakerStatus } from '../services/mockAi'
 import type { AuthRequest, UserID } from '../utils/authentication'
 import logger from '../utils/logger'
-
-interface HealthStatus {
-  status: string
-  timestamp: string
-  uptime: number
-}
 
 @Route('health')
 @Tags('Health')
 export class HealthController extends AppController {
   /**
-   * Basic health check endpoint.
-   * Returns 200 OK if the server is running.
+   * Health check endpoint with service status.
+   * Returns 200 OK with service health information.
+   * Status is 'degraded' when circuit breaker is open.
    */
   @Get('/')
   @SuccessResponse('200', 'Health check successful')
   public async checkHealth(): AppAsyncResponse<HealthStatus> {
+    const circuitBreakerStatus = getCircuitBreakerStatus()
+    const isCircuitOpen = circuitBreakerStatus.state === 'open'
+
     return createSuccessResponse({
-      status: 'healthy',
+      status: isCircuitOpen ? 'degraded' : 'healthy',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
+      services: {
+        mockAi: {
+          status: isCircuitOpen ? 'unavailable' : 'available',
+          circuitBreaker: circuitBreakerStatus,
+        },
+      },
     })
   }
 

@@ -180,3 +180,14 @@ export function resetCircuitBreaker(): void {
   circuitState.lastSuccess = null
   logger.info('Circuit breaker manually reset')
 }
+
+/**
+ * Testing utilities - DO NOT USE IN PRODUCTION.
+ * Allows tests to directly manipulate circuit breaker state.
+ */
+export const __testing__ = {
+  getState: () => circuitState,
+  setState: (state: Partial<CircuitBreakerState>) => {
+    Object.assign(circuitState, state)
+  },
+}
