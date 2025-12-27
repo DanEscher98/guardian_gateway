@@ -10,31 +10,9 @@ import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 
 import { type AsyncResult, Errors, Result } from '../lib'
-import type { AuditEntry, EncryptedPayload } from '../models/contracts'
+import type { AuditEntry } from '../models/contracts'
+import { encrypt } from '../utils/crypto'
 import logger from '../utils/logger'
-
-// Stubbed crypto imports - t1-core will provide these
-// TODO: Replace with actual imports when t1-core is ready
-// import { encrypt, getCurrentKeyVersion } from '../utils/crypto'
-
-// Stubbed crypto functions until t1-core provides them
-function encrypt(data: string): EncryptedPayload {
-  // Stub: Return base64-encoded plaintext as "ciphertext"
-  // This will be replaced by actual AES-256-GCM encryption from t1-core
-  const encoder = new TextEncoder()
-  const dataBytes = encoder.encode(data)
-  return {
-    ciphertext: Buffer.from(dataBytes).toString('base64'),
-    iv: Buffer.from(randomUUID().replace(/-/g, '').slice(0, 24), 'hex').toString('base64'),
-    tag: Buffer.from(randomUUID().replace(/-/g, '').slice(0, 32), 'hex').toString('base64'),
-    keyVersion: getCurrentKeyVersion(),
-  }
-}
-
-function getCurrentKeyVersion(): number {
-  // Stub: Return version 1 until t1-core provides key rotation
-  return 1
-}
 
 // Storage configuration
 const DATA_DIR = path.join(process.cwd(), 'data')
@@ -74,8 +52,8 @@ export async function writeAuditEntry(
     const id = randomUUID()
     const timestamp = new Date().toISOString()
 
-    // Encrypt the original message
-    const encryptedPayload = encrypt(entry.originalMessage)
+    // Encrypt the original message with per-user key derivation
+    const encryptedPayload = encrypt(entry.originalMessage, entry.userId)
     const encryptedMessage = JSON.stringify(encryptedPayload)
 
     // Create the full audit entry
